@@ -10,7 +10,8 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "bruin": "bash scripts/run-bruin.sh",
-    "build:static": "node scripts/build-static.mjs"
+    "build:static": "node scripts/build-static.mjs",
+    "reset-memory": "bash scripts/reset-memory.sh"
   },
   "keywords": [],
   "author": "",

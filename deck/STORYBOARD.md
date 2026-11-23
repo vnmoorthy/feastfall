@@ -2,7 +2,7 @@
 
 > "Thanksgiving, but everyone's lying — and the animals remember what you did last year."
 > Multiplayer AI Hackathon · Finch.AI × Crewbase · AWS Builder Loft SF · Nov 23 2026 · Co-op Multiplayer Game track
-> Repo: https://github.com/vnmoorthy/feastfall
+> Repo: https://github.com/vnmoorthy/feastfall · Static single-player demo (no server needed): https://vnmoorthy.github.io/feastfall/
 
 Decks: `deck/Feastfall.pptx` (primary, Morph transitions) · `deck/index.html` (backup: any browser, arrow keys, **F** fullscreen).
 
@@ -24,10 +24,10 @@ About 18 s per slide. **Cut to the live TV view at 1:30, back to the deck at 1:5
 | **0:54–1:12** | **4 · Meet the agents**: five cards | "Bram the trusting builder. Juniper the vigilant detective. Vex the charming merchant. Marigold the elder. Pip, chaotic and brave. Each has its own voice, and the traitor is random every match." |
 | **1:12–1:30** | **5 · Emergence**: Perception → Trust → Utility → Action, ledger panel | "Agents only know what they see. Each keeps a trust score toward every player, updated by witnessed thefts, deposits and gifts. Every action is utility-scored and logged live. The traitor's secret moves are sealed with SHA-256 and revealed at the end — proof the AI didn't cheat." |
 | **1:30–1:55** | **6 · The grudge** → **CUT TO LIVE TV VIEW** (http://localhost:8787/?tv, match 2 ready) | "Here's what that looks like." *(Join as "Moorthy".)* Juniper's golden memory bubble and voice: *"Moorthy. Last feast: 6 stolen. I keep records. I am watching you."* "Not a script. Every trust bar toward me starts red — that's last match's memory." |
-| **1:55–2:13** | **BACK TO DECK** · **7 · Architecture** | "Three.js clients over WebSocket to a Node server running an authoritative 10 Hz sim. Every event goes to a JSONL ledger; Bruin turns it into reputation and policy priors the server hot-loads. Runware generated all 14 images — 5 portraits, 8 event scenes and the hero — in about 2.5 seconds, in parallel." |
+| **1:55–2:13** | **BACK TO DECK** · **7 · Architecture** (Blender → clients ⇄ server ⇄ BAND; ledger → Bruin → reputation) | "Blender builds the procedural island as GLB for the Three.js clients. A Node server runs the 10 Hz sim. Through BAND, our Narrator agent posts the drama into a BAND room, and if you ask there who the traitor is, an island agent answers. Bruin turns the ledger into memory, and Runware made all 14 images in about 2.5 seconds." |
 | **2:13–2:31** | **8 · Learning loop + Bruin** | "Bruin is the memory: 6 assets and 27 column quality checks on DuckDB, in about a tenth of a second. After each match, policies get a reward update — utility AI plus tabular reinforcement. No LLM, runs offline. In a headless test, theft, witness, accusation, council and the traitor's exile all happened with no scripting." |
 | **2:31–2:47** | **9 · Checklist** | "Our agents move, interact, compete, cooperate, and decide outcomes. Every requirement, every bonus: 3D, memory, voice. In one live test the agents even exiled me — because of the Bruin grudge." |
-| **2:47–3:00** | **10 · Vision**: "NPCs that hold grudges" | "NPCs that hold grudges: persistent-memory social agents for any game, starting with a party game for your family table. Next: LLM dialogue, Twitch-plays, BAND for cross-tool agent comms. Scan the QR, play a round, get remembered." |
+| **2:47–3:00** | **10 · Vision**: "NPCs that hold grudges" | "NPCs that hold grudges: persistent-memory social agents for any game, starting with a party game for your family table. Next: LLM dialogue, Twitch-plays, BAND for cross-tool agent comms. Scan the QR, play a round, get remembered — or play the static demo at vnmoorthy.github.io/feastfall." |
 
 **Hard cut rule:** if you're past **2:40** when you reach slide 9, skip to slide 10.
 
@@ -70,3 +70,4 @@ Player controls: WASD/arrows or tap the ground to move · **E** Gather/Deposit/F
 - **Council doesn't happen naturally:** Director **🔥 Force council**.
 - **Match too slow:** speed **4×**, day length **2m**.
 - **Laptop or projector fails:** present `deck/index.html` from any machine; slide 6 carries the grudge quote.
+- **Server can't start at all:** open the static single-player demo at https://vnmoorthy.github.io/feastfall/.
