@@ -1,0 +1,13 @@
+.env
+node_modules/
+data/feastfall.duckdb*
+bruin/logs/
+.claude/
+.DS_Store
+*.log
+deck/src/__pycache__/
+
+logs/runs
+logs/*.log
+__pycache__/
+*.py[cod]

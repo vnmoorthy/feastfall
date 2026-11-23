@@ -1,0 +1,22 @@
+{
+  "match_id": "m_sample1",
+  "started": "2026-11-23T20:00:00Z",
+  "ended": "2026-11-23T20:04:00Z",
+  "duration": 240,
+  "outcome": "feast",
+  "traitor": "vex",
+  "food": 62,
+  "wood": 21,
+  "food_goal": 60,
+  "wood_goal": 20,
+  "humans": [
+    "moorthy"
+  ],
+  "agents": [
+    "bram",
+    "juniper",
+    "vex",
+    "marigold",
+    "pip"
+  ]
+}
