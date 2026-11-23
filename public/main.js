@@ -96,7 +96,7 @@ async function loadModels() {
   const names = ['island', 'granary', 'campfire', 'pier', 'bush_berry', 'tree_autumn_a', 'tree_autumn_b', 'tree_autumn_c', 'props'];
   const loader = new GLTFLoader();
   await Promise.all(names.map((n) => new Promise((resolve) => {
-    loader.load(`/models/${n}.glb`, (g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.flatShading = true; } }); MODELS[n] = g.scene; resolve(); }, undefined, () => resolve());
+    loader.load(`models/${n}.glb`, (g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.flatShading = true; } }); MODELS[n] = g.scene; resolve(); }, undefined, () => resolve());
   })));
   if (!Object.keys(MODELS).length) return;
   if (MODELS.island) { island.visible = false; sand.visible = false; const m = cloneModel(MODELS.island); scene.add(m); }
@@ -264,7 +264,14 @@ function ensureChar(c) {
 }
 
 // ================= NETWORK =================
-function connect() {
+async function connect() {
+  if (window.FEASTFALL_STATIC) {
+    const { createLocalSocket } = await import('./local.js');
+    const ws = await createLocalSocket();
+    S.ws = ws; ws.onmessage = (ev) => { const m = JSON.parse(ev.data); (handlers[m.type] || (() => {}))(m); };
+    ws.start();
+    return;
+  }
   const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
   S.ws = ws;
   ws.onmessage = (ev) => { const m = JSON.parse(ev.data); (handlers[m.type] || (() => {}))(m); };
@@ -295,7 +302,7 @@ const handlers = {
     updateHud(m);
   },
   res: applyResources,
-  match(m) { S.matchId = m.matchId; S.goals = m.goals; S.ledger = []; renderLedger(); $('#endScreen').classList.add('hidden'); if (stashObj) { scene.remove(stashObj); stashObj = null; } $('#dlLedger').href = `/api/ledger/${m.matchId}.jsonl`; },
+  match(m) { S.matchId = m.matchId; S.goals = m.goals; S.ledger = []; renderLedger(); $('#endScreen').classList.add('hidden'); if (stashObj) { scene.remove(stashObj); stashObj = null; } if (!window.FEASTFALL_STATIC) $('#dlLedger').href = `api/ledger/${m.matchId}.jsonl`; },
   ledger(m) { addLedger(m.entry); },
   ledger_bulk(m) { S.ledger = m.entries; renderLedger(); },
   reveal(m) {
@@ -327,7 +334,8 @@ function renderRoster() {
   $('#joinRoster').innerHTML = S.roster.map((a, i) => `<div class="r" style="--c:${a.color};animation-delay:${i * 80}ms"><div class="ph" style="background-image:${portrait(a.id)}">${S.images[a.id] ? '' : `<div style="font-size:42px;display:grid;place-items:center;height:100%">${EMOJI[a.species]}</div>`}</div><b>${a.name}</b><small>${a.title}</small></div>`).join('');
 }
 $('#nameInput').value = localStorage.getItem('ff_name') || '';
-$('#qrImg').src = '/api/qr'; $('#qrBig').src = '/api/qr';
+const QR_SRC = window.FEASTFALL_STATIC ? 'qr.svg' : 'api/qr';
+$('#qrImg').src = QR_SRC; $('#qrBig').src = QR_SRC;
 $('#joinForm').onsubmit = (e) => { e.preventDefault(); const name = $('#nameInput').value.trim(); if (!name) return; S.myName = name; send({ type: 'join', name }); enterGame(false); unlockAudio(); };
 $('#tvBtn').onclick = () => { send({ type: 'spectate' }); enterGame(true); unlockAudio(); };
 function enterGame(tv) {
@@ -335,7 +343,7 @@ function enterGame(tv) {
   $('#join').classList.add('hidden');
   $$('.hud').forEach((h) => h.classList.remove('hidden'));
   $('#director').classList.add('hidden');
-  if (tv) { $('#director').classList.remove('hidden'); if (!$('.qr-float')) { const q = document.createElement('div'); q.className = 'qr-float hud'; q.innerHTML = `<img src="/api/qr" alt="QR"/><div><b>Scan to play</b><br><span class="mono muted" style="font-size:11px">${esc(S.joinUrl)}</span></div>`; document.body.appendChild(q); } }
+  if (tv) { $('#director').classList.remove('hidden'); if (!$('.qr-float')) { const q = document.createElement('div'); q.className = 'qr-float hud'; q.innerHTML = `<img src="${QR_SRC}" alt="QR"/><div><b>Scan to play</b><br><span class="mono muted" style="font-size:11px">${esc(S.joinUrl)}</span></div>`; document.body.appendChild(q); } }
 }
 
 // ================= HUD =================
@@ -507,7 +515,7 @@ function showEnd(sum) {
   $('#bruinStatus').textContent = 'queued'; $('#bruinStatus').className = 'tag';
   $('#bruinLog').textContent = 'Match ledger written → data/ledger/*.jsonl\nBruin pipeline starts automatically…\n';
   $('#memTable').innerHTML = '';
-  $('#dlLedger').href = `/api/ledger/${sum.match_id}.jsonl`;
+  $('#dlLedger').href = window.FEASTFALL_STATIC ? URL.createObjectURL(new Blob([S.ledger.map((e) => JSON.stringify(e)).join('\n')], { type: 'application/x-ndjson' })) : `api/ledger/${sum.match_id}.jsonl`;
 }
 function renderReveals() {
   const list = (S.revealed || []).filter((e) => !S.lastSummary || e.match_id === S.lastSummary.match_id || !e.match_id);

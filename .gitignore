@@ -10,4 +10,4 @@ deck/src/__pycache__/
 logs/runs
 logs/*.log
 __pycache__/
-*.py[cod]
+*.py[cod]site/
