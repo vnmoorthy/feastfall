@@ -118,16 +118,17 @@ function screenshots() {
     await sharp(p).resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 84 }).toFile(out);
     return out;
   };
-  const GAME = await shot("docs/screenshots/gameplay.jpg", "gameplay"), COUNCIL = await shot("docs/screenshots/council.jpg", "council"), END = await shot("docs/screenshots/end.jpg", "end");
+  const GAME = await shot(fs.existsSync(path.join(ROOT, "docs/screenshots/gameplay-hd.jpg")) ? "docs/screenshots/gameplay-hd.jpg" : "docs/screenshots/gameplay.jpg", "gameplay"), COUNCIL = await shot("docs/screenshots/council.jpg", "council"), END = await shot("docs/screenshots/end.jpg", "end");
   let BG1 = null;
-  if (fs.existsSync(path.join(ROOT, "docs/blender-render.png"))) {
+  const RENDER = ["docs/blender-render-cycles.png", "docs/blender-render-hd.png", "docs/blender-render.png"].map((r) => path.join(ROOT, r)).find((p) => fs.existsSync(p));
+  if (RENDER) {
     const ov = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs>
       <linearGradient id="l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0f1626" stop-opacity="0.97"/><stop offset="0.42" stop-color="#0f1626" stop-opacity="0.88"/><stop offset="1" stop-color="#0f1626" stop-opacity="0.25"/></linearGradient>
       <linearGradient id="v" x1="0" y1="0" x2="0" y2="1"><stop offset="0.6" stop-color="#0f1626" stop-opacity="0"/><stop offset="1" stop-color="#0f1626" stop-opacity="0.7"/></linearGradient>
       <radialGradient id="e" cx="85%" cy="22%" r="40%"><stop offset="0" stop-color="#ff7a3d" stop-opacity="0.35"/><stop offset="1" stop-color="#ff7a3d" stop-opacity="0"/></radialGradient></defs>
       <rect width="1920" height="1080" fill="#ff7a3d" opacity="0.10"/><rect width="1920" height="1080" fill="url(#l)"/><rect width="1920" height="1080" fill="url(#v)"/><rect width="1920" height="1080" fill="url(#e)"/></svg>`;
     BG1 = path.join(BUILD, "bg_slide1.jpg");
-    await sharp(path.join(ROOT, "docs/blender-render.png")).resize(1920, 1080, { fit: "cover" }).composite([{ input: Buffer.from(ov) }]).jpeg({ quality: 85 }).toFile(BG1);
+    await sharp(RENDER).resize(1920, 1080, { fit: "cover" }).composite([{ input: Buffer.from(ov) }]).jpeg({ quality: 85 }).toFile(BG1);
   }
 
   const pres = new pptxgen();

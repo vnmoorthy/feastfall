@@ -44,7 +44,7 @@ That line isn't scripted. It comes from a DuckDB table.
   <img src="docs/screenshots/end.jpg" alt="End screen: unsealed traitor decisions, learned policy changes and the Bruin log" width="32%">
 </p>
 
-<p align="center"><img src="docs/blender-render.png" alt="The FEASTFALL island built in Blender: red granary, campfire, lanterns, autumn trees and the feast table" width="100%"><br><sub>The world is modeled procedurally in Blender (<code>tools/blender/</code>), exported as GLB and streamed into Three.js.</sub></p>
+<p align="center"><img src="docs/blender-render-cycles.png" alt="The FEASTFALL island rendered in Blender Cycles: shingled red granary, campfire, lantern posts, leafy autumn trees, berry bushes, pumpkins and the Thanksgiving feast table" width="100%"><br><sub><b>Rendered in Blender Cycles</b> (path-traced, 48 samples + OpenImageDenoise, AgX, golden-hour sky) from the same HD GLB assets the game streams into Three.js. Scripts: <code>tools/blender/build_assets_hd.py</code> builds the world, <code>tools/blender/render_scene_hd.py -- CPU SAMPLES=48</code> renders it.</sub></p>
 
 ---
 
@@ -436,7 +436,7 @@ feastfall/
 - **Runware** ✅ All 14 images: five portraits, eight event cinematics and the hero art, generated in parallel at boot and cached.
 - **BAND** ✅ Two-way bridge ([`server/band.js`](server/band.js)). A registered BAND agent, *Feastfall Narrator*, posts every world event, accusation, council vote, exile and memory callout to a BAND room. Anyone in that room, human or agent in another tool, can write "who is the traitor?" or "call a council", and an island agent answers back into BAND. Configure with `BAND_AGENT_KEY`, `BAND_CHAT_ID` and `BAND_OWNER_ID`; check status at `GET /api/band`.
 - **Realistic renderer** ✅ [`public/realism.js`](public/realism.js): physically-based Preetham sky, image-based lighting, PBR clear-coat water with scrolling normal maps, GTAO ambient occlusion, Unreal bloom on fire and lanterns, VSM soft shadows, a vignette grade, 18,000 instanced grass blades swaying in a wind shader, falling autumn leaves and campfire embers. An fps governor switches off AO, then post-processing, if a laptop can't hold the frame rate, and the **✨ HD** button toggles it.
-- **Blender** ✅ The island, granary, campfire, pier, autumn trees, berry bushes and props (pumpkins, hay bales, lantern posts, the feast table) are built procedurally by [`tools/blender/build_assets.py`](tools/blender/build_assets.py) and exported as GLB. The client loads them with `GLTFLoader` and falls back to procedural meshes if a file is missing.
+- **Blender** ✅ The island, granary, campfire, pier, autumn trees, berry bushes and props (pumpkins, hay bales, lantern posts, the feast table) are built procedurally by [`tools/blender/build_assets_hd.py`](tools/blender/build_assets_hd.py) (HD, used by default via `public/models/hd/`) and [`tools/blender/build_assets.py`](tools/blender/build_assets.py) (lightweight fallback), exported as GLB, and beauty-rendered in Cycles by [`tools/blender/render_scene_hd.py`](tools/blender/render_scene_hd.py). The client loads them with `GLTFLoader` and falls back to procedural meshes if a file is missing.
 
 ---
 

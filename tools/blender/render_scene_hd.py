@@ -153,6 +153,9 @@ cam_d.dof.focus_distance = (Vector((0, -6, 2.5)) - cam.location).length
 cam_d.dof.aperture_fstop = 1.4
 cam_d.sensor_width = 36
 scn.render.image_settings.file_format = 'PNG'
+OPT = dict(a.split('=', 1) for a in argv if '=' in a)
+if 'OUT' in OPT: OUTPNG = os.path.abspath(OPT['OUT'])
+if 'PCT' in OPT: scn.render.resolution_percentage = int(OPT['PCT'])
 scn.render.filepath = OUTPNG
 try:
     scn.view_settings.view_transform = 'AgX'
@@ -172,10 +175,11 @@ if not FORCE_CYCLES:
 if engine is None:
     scn.render.engine = 'CYCLES'
     engine = 'CYCLES'
-    scn.cycles.samples = 96
-    scn.cycles.time_limit = 200
+    scn.cycles.samples = int(OPT.get('SAMPLES', 96))
+    scn.cycles.time_limit = float(OPT.get('TIME', 200))
     scn.cycles.max_bounces = 6
     try:
+        if 'CPU' in argv: raise RuntimeError('cpu requested')
         scn.cycles.device = 'GPU'
         prefs = bpy.context.preferences.addons['cycles'].preferences
         prefs.compute_device_type = 'METAL'
@@ -183,7 +187,7 @@ if engine is None:
         for d in prefs.devices:
             d.use = True
     except Exception:
-        pass
+        scn.cycles.device = 'CPU'
     try:
         scn.cycles.use_denoising = True
         scn.cycles.denoiser = 'OPENIMAGEDENOISE'
@@ -191,7 +195,7 @@ if engine is None:
         pass
 else:
     try:
-        scn.eevee.taa_render_samples = 32
+        scn.eevee.taa_render_samples = 64
     except Exception:
         pass
 print("ENGINE", engine)
