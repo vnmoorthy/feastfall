@@ -13,6 +13,10 @@ A 3D multiplayer social-deduction game where humans and five AI animals share on
 <img alt="Three.js" src="https://img.shields.io/badge/Three.js-r187-000000?logo=three.js&logoColor=white">
 <img alt="Bruin pipeline" src="https://img.shields.io/badge/Bruin-pipeline-f4c95d">
 <img alt="Runware" src="https://img.shields.io/badge/Runware-image%20inference-ff7a3d">
+<img alt="BAND" src="https://img.shields.io/badge/BAND-agent%20rooms-7c5cff">
+<img alt="Telem" src="https://img.shields.io/badge/Telem-live%20web%20search-1f6feb">
+<img alt="Glasser" src="https://img.shields.io/badge/Glasser-news%20data-f06292">
+<img alt="Lingcode" src="https://img.shields.io/badge/Lingcode-companion%20app-4f46e5">
 <img alt="WebSocket" src="https://img.shields.io/badge/WebSocket-realtime-4fc3f7">
 <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-blue">
 <img alt="Built at Multiplayer AI Hackathon 2026" src="https://img.shields.io/badge/Built%20at-Multiplayer%20AI%20Hackathon%202026-8a5cf6">
@@ -435,6 +439,9 @@ feastfall/
 - **Bruin** (required) ✅ The whole memory system: ingestion, quality checks, reputation and policy marts, and the JSON export the agents load. See [`bruin/README.md`](bruin/README.md).
 - **Runware** ✅ All 14 images: five portraits, eight event cinematics and the hero art, generated in parallel at boot and cached.
 - **BAND** ✅ Two-way bridge ([`server/band.js`](server/band.js)). A registered BAND agent, *Feastfall Narrator*, posts every world event, accusation, council vote, exile and memory callout to a BAND room. Anyone in that room, human or agent in another tool, can write "who is the traitor?" or "call a council", and an island agent answers back into BAND. Configure with `BAND_AGENT_KEY`, `BAND_CHAT_ID` and `BAND_OWNER_ID`; check status at `GET /api/band`.
+- **Telem AI** ✅ [`server/worldlink.js`](server/worldlink.js). Agents search the live web: ask an animal a real-world question ("Juniper, how many turkeys are eaten on Thanksgiving?") and it looks it up through Telem's `/v1/search`, answers out loud and logs a `lookup` entry to the ledger. Every lookup appears as a traced session in the Telem console. Configure with `TELEM_API_KEY`.
+- **Glasser** ✅ [`server/worldlink.js`](server/worldlink.js). The island's town crier: at sunrise Marigold reads a real Thanksgiving headline pulled from Google News through Glasser's `serper /news` provider ($0.001 per call), logged as a `crier` ledger entry. Configure with `GLASSER_API_KEY`.
+- **Lingcode** ✅ Generated the design for *The Island Almanac*, a companion app with animal cards, rules and a grudge board, from a single prompt in the Lingcode playground. The full native build stopped at the free daily LingModel budget.
 - **Realistic renderer** ✅ [`public/realism.js`](public/realism.js): physically-based Preetham sky, image-based lighting, PBR clear-coat water with scrolling normal maps, GTAO ambient occlusion, Unreal bloom on fire and lanterns, VSM soft shadows, a vignette grade, 18,000 instanced grass blades swaying in a wind shader, falling autumn leaves and campfire embers. An fps governor switches off AO, then post-processing, if a laptop can't hold the frame rate, and the **✨ HD** button toggles it.
 - **Blender** ✅ The island, granary, campfire, pier, autumn trees, berry bushes and props (pumpkins, hay bales, lantern posts, the feast table) are built procedurally by [`tools/blender/build_assets_hd.py`](tools/blender/build_assets_hd.py) (HD, used by default via `public/models/hd/`) and [`tools/blender/build_assets.py`](tools/blender/build_assets.py) (lightweight fallback), exported as GLB, and beauty-rendered in Cycles by [`tools/blender/render_scene_hd.py`](tools/blender/render_scene_hd.py). The client loads them with `GLTFLoader` and falls back to procedural meshes if a file is missing.
 

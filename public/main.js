@@ -291,7 +291,7 @@ const handlers = {
     S.roster = m.roster; S.images = m.images || {}; S.joinUrl = m.joinUrl; S.memory = m.memory;
     renderRoster(); renderAgentCards(); $('#joinUrl').textContent = m.joinUrl; $('#joinUrl2').textContent = m.joinUrl;
     const n = m.memory?.actors?.filter((a) => a.type === 'human').length || 0;
-    $('#memNote').textContent = (n ? `🧠 Bruin memory loaded: the animals remember ${n} human${n > 1 ? 's' : ''}` : '') + (m.band ? ' · 📡 BAND room bridged' : '');
+    $('#memNote').textContent = (n ? `🧠 Bruin memory loaded: the animals remember ${n} human${n > 1 ? 's' : ''}` : '') + (m.band ? ' · 📡 BAND room bridged' : '') + (m.world?.telem ? ' · 🔎 Telem web search' : '') + (m.world?.glasser ? ' · 📰 Glasser news' : '');
     if (S.images.hero) $('#joinBg').style.backgroundImage = `url(${S.images.hero})`;
   },
   images(m) { S.images = m.images; renderRoster(); renderAgentCards(); if (S.images.hero) $('#joinBg').style.backgroundImage = `url(${S.images.hero})`; },
@@ -403,7 +403,7 @@ function renderAgentCards() {
 $('#agentCards').onclick = (e) => { const c = e.target.closest('.acard'); if (c) S.focus = S.focus === c.dataset.id ? null : c.dataset.id; };
 
 // ================= LEDGER =================
-const DRAMA = /steal|ignite|accuse|council|vote|exile|witness|deceive|stash|gift|role|join/;
+const DRAMA = /steal|ignite|accuse|council|vote|exile|witness|deceive|stash|gift|role|join|lookup|crier/;
 function addLedger(e) { S.ledger.push(e); if (S.ledger.length > 400) S.ledger.shift(); renderLedgerEntry(e, true); $('#ledgerCount').textContent = S.ledger.length; }
 function passes(e) {
   if (S.filter === 'all') return true;

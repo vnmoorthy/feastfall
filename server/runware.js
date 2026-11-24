@@ -28,7 +28,7 @@ export function loadEnv(root) {
       const m = l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/); if (m) env[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
     }
   } catch {}
-  return { ...env, ...Object.fromEntries(Object.entries(process.env).filter(([k]) => /RUNWARE|BAND|PORT/.test(k))) };
+  return { ...env, ...Object.fromEntries(Object.entries(process.env).filter(([k]) => /RUNWARE|BAND|PORT|TELEM|GLASSER/.test(k))) };
 }
 
 export class Runware {

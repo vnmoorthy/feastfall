@@ -100,6 +100,7 @@ kbd { font: 600 10px var(--mono); background: rgba(255,255,255,.12); border: 1px
 .le .act { font: 700 10px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.08); margin-left: 4px; }
 .le .act.steal, .le .act.ignite, .le .act.deceive, .le .act.stash { background: rgba(255,77,94,.25); color: #ffc0c6; }
 .le .act.accuse, .le .act.council, .le .act.vote, .le .act.exile, .le .act.witness { background: rgba(255,122,61,.22); color: #ffd3bd; }
+.le .act.lookup, .le .act.crier { background: rgba(110,198,255,.2); color: #cfeaff; }
 .le .act.gift, .le .act.deposit { background: rgba(123,201,111,.2); color: #c8f5bf; }
 .le .why { color: var(--muted); margin-top: 3px; }
 .le .scores { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }

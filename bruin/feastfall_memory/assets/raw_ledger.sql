@@ -22,7 +22,7 @@ columns:
     checks:
       - name: not_null
       - name: accepted_values
-        value: [gather, deposit, steal, eat, gift, accuse, vote, exile, ignite, extinguish, council, speak, join, witness, deceive, stash, role, "decide:accuse", "decide:council", "decide:ignite", "decide:steal", "decide:extinguish", "decide:gift"]
+        value: [gather, deposit, steal, eat, gift, accuse, vote, exile, ignite, extinguish, council, speak, join, witness, deceive, stash, role, lookup, crier, "decide:accuse", "decide:council", "decide:ignite", "decide:steal", "decide:extinguish", "decide:gift"]
   - name: actor_type
     type: varchar
     checks:

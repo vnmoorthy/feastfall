@@ -11,6 +11,7 @@ import QRCode from 'qrcode';
 import { Game } from './game.js';
 import { Runware, loadEnv } from './runware.js';
 import { Band } from './band.js';
+import { WorldLink } from './worldlink.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = path.join(ROOT, 'data');
@@ -88,6 +89,8 @@ const game = new Game({
   onMatchEnd: () => setTimeout(() => runBruin('match-end'), 1200),
 });
 loadMemory();
+const link = new WorldLink({ telemKey: env.TELEM_API_KEY, glasserKey: env.GLASSER_API_KEY });
+game.link = link;
 band = new Band({ agentKey: env.BAND_AGENT_KEY, chatId: env.BAND_CHAT_ID, ownerId: env.BAND_OWNER_ID, onRemoteChat: (m) => game.remoteChat(m) });
 
 // lazily generate event art we don't have yet
@@ -101,7 +104,7 @@ function lanUrl() {
 wss.on('connection', (ws) => {
   const wsId = ++wsSeq;
   sockets.set(wsId, { ws, charId: null });
-  ws.send(JSON.stringify({ type: 'hello', wsId, roster: game.roster(), images: imageMap(), joinUrl: lanUrl(), memory: summarizeMemory(game.memory || {}), bruin: bruinState.last, runware: runware.enabled(), band: band?.enabled() || false }));
+  ws.send(JSON.stringify({ type: 'hello', wsId, roster: game.roster(), images: imageMap(), joinUrl: lanUrl(), memory: summarizeMemory(game.memory || {}), bruin: bruinState.last, runware: runware.enabled(), band: band?.enabled() || false, world: link.status() }));
   ws.send(JSON.stringify(game.resources()));
   ws.send(JSON.stringify({ type: 'ledger_bulk', entries: game.ledger.slice(-80) }));
   if (game.phase !== 'lobby') ws.send(JSON.stringify({ type: 'match', matchId: game.matchId, matchNo: game.matchNo, phase: game.phase, goals: game.goals(), dayLength: game.dayLength }));
@@ -159,7 +162,7 @@ function imageMap() {
 }
 
 // ---------- HTTP API ----------
-app.get('/api/health', (_, res) => res.json({ ok: true, phase: game.phase, players: [...game.chars.values()].filter((c) => c.kind === 'human').length, runware: runware.enabled(), runwareCalls: runware.calls, bruin: bruinState.last, band: band?.status() }));
+app.get('/api/health', (_, res) => res.json({ ok: true, phase: game.phase, players: [...game.chars.values()].filter((c) => c.kind === 'human').length, runware: runware.enabled(), runwareCalls: runware.calls, bruin: bruinState.last, band: band?.status(), world: link.status() }));
 app.get('/api/qr', async (_, res) => res.type('image/svg+xml').send(await QRCode.toString(lanUrl(), { type: 'svg', margin: 1, color: { dark: '#1a1208', light: '#fff4e0' } })));
 app.get('/api/join-url', (_, res) => res.json({ url: lanUrl() }));
 app.get('/api/memory', (_, res) => res.json(summarizeMemory(game.memory || {})));
@@ -172,6 +175,8 @@ app.get('/api/ledger/:match.jsonl', (req, res) => {
 });
 app.get('/api/bruin', (_, res) => res.json(bruinState));
 app.post('/api/bruin/run', (_, res) => res.json({ started: runBruin('api') }));
+app.get('/api/world', (_, res) => res.json(link.status()));
+app.get('/api/world/test', async (req, res) => res.json({ telem: await link.search(String(req.query.q || 'Thanksgiving turkey facts'), { agent: 'api' }), glasser: await link.headline('Thanksgiving') }));
 app.get('/api/band', (_, res) => res.json(band?.status() || { enabled: false }));
 app.get('/api/images', (_, res) => res.json(imageMap()));
 
@@ -188,6 +193,6 @@ setInterval(() => {
 }, 100);
 
 server.listen(PORT, () => {
-  console.log(`\n  🦃 FEASTFALL running\n  ▸ local:  http://localhost:${PORT}\n  ▸ phones: ${lanUrl()}\n  ▸ runware: ${runware.enabled() ? 'enabled (' + runware.model + ')' : 'disabled — add RUNWARE_API_KEY to .env'}\n  ▸ band:    ${band?.enabled() ? 'bridged to room ' + env.BAND_CHAT_ID : 'disabled — add BAND_AGENT_KEY/BAND_CHAT_ID/BAND_OWNER_ID to .env'}\n`);
+  console.log(`\n  🦃 FEASTFALL running\n  ▸ local:  http://localhost:${PORT}\n  ▸ phones: ${lanUrl()}\n  ▸ runware: ${runware.enabled() ? 'enabled (' + runware.model + ')' : 'disabled — add RUNWARE_API_KEY to .env'}\n  ▸ band:    ${band?.enabled() ? 'bridged to room ' + env.BAND_CHAT_ID : 'disabled — add BAND_AGENT_KEY/BAND_CHAT_ID/BAND_OWNER_ID to .env'}\n  ▸ telem:   ${env.TELEM_API_KEY ? 'live web search for agents' : 'disabled — add TELEM_API_KEY'}\n  ▸ glasser: ${env.GLASSER_API_KEY ? 'town crier news' : 'disabled — add GLASSER_API_KEY'}\n`);
   if (runware.enabled()) runware.warm().then(() => broadcast({ type: 'images', images: imageMap() }));
 });

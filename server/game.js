@@ -263,6 +263,17 @@ export class Game {
     this.event('sunrise', '🌅 Sunrise on Feastfall Island', `Fill the Granary: ${this.goals().food} food & ${this.goals().wood} wood before sunset. One of the animals is lying.`);
     const owl = this.chars.get('marigold');
     if (owl) this.speak(owl, 'The sun rises. Gather food and wood for the Great Feast. And watch each other closely.');
+    if (this.link?.glasserKey && owl) {
+      const mid = this.matchId;
+      this.link.headline('Thanksgiving').then((h) => {
+        if (!h || this.matchId !== mid || owl.exiled) return;
+        setTimeout(() => {
+          this.speak(owl, `Town crier! News from the mainland: "${h.title}"${h.source ? ', says ' + h.source : ''}.`);
+          this.log({ actor: owl, action: 'crier', reason: `Glasser · serper /news → ${h.title}${h.source ? ' (' + h.source + ')' : ''}`, utility: null });
+          this.broadcast({ type: 'toast', text: `📰 Town crier (via Glasser): ${h.title}` });
+        }, 5500);
+      });
+    }
   }
 
   trustSnapshot() {
@@ -470,7 +481,19 @@ export class Game {
     const others = this.living().filter((o) => o.id !== a.id);
     const suspect = others.slice().sort((x, y) => this.trustOf(a, x) - this.trustOf(a, y))[0];
     let text;
-    if (/who|traitor|sus|suspect|thief|steal/.test(t)) {
+    const worldQ = /\b(look ?up|search|google|what'?s the|what is|when (is|was|did)|how (many|much|old|far)|who (won|is the president|invented|founded)|weather|news|fact)\b/.test(t) && !/traitor|thief|steal|sus\b/.test(t);
+    if (worldQ && this.link?.telemKey) {
+      const q = t.replace(/^(hey|ok|okay)?\s*\w+[,!]?\s*(can you|please)?\s*(look ?up|search( for)?|google)\s*/i, '').trim() || t;
+      this.speak(a, pick(['Hold on, let me ask the wind…', 'One moment, I will ask the mainland…', 'Let me look that up…']), extra);
+      this.link.search(q, { agent: a.id, matchId: this.matchId }).then((r) => {
+        if (a.exiled) return;
+        const said = r ? `${r.title}${r.snippet ? '. ' + r.snippet : ''}` : 'The wind is quiet. I could not find anything.';
+        this.speak(a, said, extra);
+        this.log({ actor: a, action: 'lookup', target: c.id, targetName: c.name, reason: r ? `Telem web search "${q.slice(0, 60)}" → ${r.title}` : `Telem web search "${q.slice(0, 60)}" → no result`, utility: null });
+      });
+      return;
+    }
+    if (/traitor|sus|suspect|thief|steal|who did|who stole|who is it/.test(t)) {
       if (a.role === 'traitor') {
         const frame = others.filter((o) => o.id !== a.id && o.id !== c.id).sort((x, y) => this.avgTrust(x) - this.avgTrust(y))[0] || c;
         text = `If you ask me? ${frame?.name}. Always lurking near the Granary.`;
