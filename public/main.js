@@ -1,6 +1,7 @@
 // FEASTFALL client — Three.js world, WebSocket multiplayer, voices, ledger, council, Bruin memory UI.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { setupRealism } from './realism.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -40,9 +41,9 @@ const skyMat = new THREE.ShaderMaterial({
   vertexShader: 'varying vec3 vP; void main(){ vP = (modelMatrix*vec4(position,1.)).xyz; gl_Position = projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.); }',
   fragmentShader: 'uniform vec3 top; uniform vec3 bottom; varying vec3 vP; void main(){ float h = normalize(vP).y; gl_FragColor = vec4(mix(bottom, top, smoothstep(-0.05, 0.5, h)), 1.); }',
 });
-scene.add(new THREE.Mesh(new THREE.SphereGeometry(300, 24, 16), skyMat));
+const skyDome = new THREE.Mesh(new THREE.SphereGeometry(300, 24, 16), skyMat); scene.add(skyDome);
 
-const flat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, flatShading: true, roughness: 0.85, ...extra });
+const flat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, flatShading: false, roughness: 0.78, ...extra });
 // water
 const waterGeo = new THREE.PlaneGeometry(400, 400, 60, 60); waterGeo.rotateX(-Math.PI / 2);
 const water = new THREE.Mesh(waterGeo, flat(0x2f8fb5, { transparent: true, opacity: 0.92, roughness: 0.3, metalness: 0.1 }));
@@ -82,6 +83,9 @@ for (let i = 0; i < 26; i++) { const a = rand(0, Math.PI * 2), r = rand(14, 42);
 for (let i = 0; i < 14; i++) { const a = rand(0, Math.PI * 2), r = rand(8, 16); const pk = new THREE.Mesh(new THREE.SphereGeometry(rand(0.45, 0.8), 10, 8), flat(0xff8c1a)); pk.scale.y = 0.75; pk.position.set(Math.cos(a) * r, 0.35, Math.sin(a) * r); pk.castShadow = true; pk.userData.deco = 'pumpkin'; decos.push(pk); scene.add(pk); }
 
 
+let fx = null;
+try { fx = setupRealism({ renderer, scene, camera, sun, hemi, oldSky: skyDome, oldWater: water, campfirePos: { x: 0, z: 10 } }); } catch (e) { console.warn('[feastfall] realism layer disabled', e); }
+
 // ---------- Blender-built GLB assets (graceful fallback to procedural meshes) ----------
 const MODELS = {};
 function cloneModel(src) {
@@ -93,10 +97,13 @@ function tint(obj, hex) {
   obj.traverse((n) => { if (n.isMesh && n.material?.color) { if (n.userData.baseColor == null) n.userData.baseColor = n.material.color.getHex(); n.material.color.setHex(hex ?? n.userData.baseColor); } });
 }
 async function loadModels() {
+  const HD_MODELS = await fetch('models/hd/manifest.json').then((r) => r.ok).catch(() => false);
   const names = ['island', 'granary', 'campfire', 'pier', 'bush_berry', 'tree_autumn_a', 'tree_autumn_b', 'tree_autumn_c', 'props'];
   const loader = new GLTFLoader();
   await Promise.all(names.map((n) => new Promise((resolve) => {
-    loader.load(`models/${n}.glb`, (g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.flatShading = true; } }); MODELS[n] = g.scene; resolve(); }, undefined, () => resolve());
+    const onLoad = (g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) { o.material.flatShading = false; o.material.envMapIntensity = 0.9; } } }); MODELS[n] = g.scene; resolve(); };
+    const tryLoad = (url, next) => loader.load(url, onLoad, undefined, next);
+    if (HD_MODELS) tryLoad(`models/hd/${n}.glb`, () => tryLoad(`models/${n}.glb`, () => resolve())); else tryLoad(`models/${n}.glb`, () => resolve());
   })));
   if (!Object.keys(MODELS).length) return;
   if (MODELS.island) { island.visible = false; sand.visible = false; const m = cloneModel(MODELS.island); scene.add(m); }
@@ -368,8 +375,8 @@ function updateHud(m) {
   sun.color.copy(tcol); sun.intensity = 2.4 - p * 1.3 + (m.phase === 'council' ? -0.8 : 0);
   skyMat.uniforms.top.value.setHSL(0.58 - p * 0.06, 0.6, 0.6 - p * 0.38);
   skyMat.uniforms.bottom.value.setHSL(0.07, 0.95, 0.72 - p * 0.25);
-  scene.fog.color.copy(skyMat.uniforms.bottom.value);
-  const sa = Math.PI * (0.15 + p * 0.7); sun.position.set(Math.cos(sa) * 60, Math.sin(sa) * 55 + 8, 30);
+  if (!fx) scene.fog.color.copy(skyMat.uniforms.bottom.value);
+  const sa = Math.PI * (0.15 + p * 0.7); sun.position.set(Math.cos(sa) * 60, Math.sin(sa) * 55 + 8, 30); fx?.sunMoved();
   hemi.intensity = 0.95 - p * 0.45;
   // granary piles
   syncPile(pile, Math.min(40, m.granary.food), (i) => new THREE.Mesh(new THREE.SphereGeometry(0.33, 6, 5), flat(foodColors[i % 5])));
@@ -454,6 +461,8 @@ function speak(m) {
   u.pitch = m.voice.pitch; u.rate = m.voice.rate; u.volume = 1;
   speechSynthesis.speak(u);
 }
+$('#hdBtn').textContent = fx?.quality === 'high' ? '✨ HD on' : '✨ HD off';
+$('#hdBtn').onclick = () => { if (!fx) return; fx.setQuality(fx.quality === 'high' ? 'low' : 'high'); $('#hdBtn').textContent = fx.quality === 'high' ? '✨ HD on' : '✨ HD off'; toast(fx.quality === 'high' ? 'HD: ambient occlusion, bloom, reflections, 18k grass blades' : 'Performance mode'); };
 $('#voiceBtn').onclick = () => { S.voice = !S.voice; $('#voiceBtn').textContent = S.voice ? '🔊 Voices on' : '🔇 Voices off'; if (!S.voice) speechSynthesis.cancel(); };
 
 // ================= CINEMATIC / TOAST =================
@@ -643,7 +652,7 @@ function frame() {
   flames.forEach((f, i) => { f.scale.y = 1 + Math.sin(t * 9 + i * 2) * 0.18; f.rotation.y = t * (1 + i); });
   fireLight.intensity = (S.snap?.phase === 'council' ? 70 : 28) + Math.sin(t * 13) * 5;
   for (const g of fireObjs) g.children.forEach((c, j) => { if (c.isMesh) { c.scale.y = 0.7 + Math.abs(Math.sin(t * 7 + j)) * 0.8; c.rotation.y = t * 2 + j; } else c.intensity = 50 + Math.sin(t * 17) * 15; });
-  const wp = waterGeo.attributes.position; for (let i = 0; i < wp.count; i++) { const x = waterBase[i * 3], z = waterBase[i * 3 + 2]; wp.setY(i, Math.sin(x * 0.15 + t) * 0.18 + Math.cos(z * 0.12 + t * 0.8) * 0.18); } wp.needsUpdate = true;
+  const wp = waterGeo.attributes.position; if (water.visible) for (let i = 0; i < wp.count; i++) { const x = waterBase[i * 3], z = waterBase[i * 3 + 2]; wp.setY(i, Math.sin(x * 0.15 + t) * 0.18 + Math.cos(z * 0.12 + t * 0.8) * 0.18); } wp.needsUpdate = true;
   for (const f of res.fish.values()) { f.userData.ring.scale.setScalar(1 + (t % 2) * 0.6); f.userData.ring.material.opacity = 0.6 - (t % 2) * 0.3; f.userData.fish.position.y = 0.3 + Math.abs(Math.sin(t * 2)) * 0.8; }
   marker.material.opacity *= 0.95;
   if (stashObj) stashObj.rotation.y += dt * 0.5;
@@ -659,10 +668,10 @@ function frame() {
   if (shake > 0) { camera.position.x += (Math.random() - 0.5) * shake; camera.position.y += (Math.random() - 0.5) * shake; shake *= 0.92; if (shake < 0.01) shake = 0; }
   camera.lookAt(camTarget);
   sun.target.position.copy(camTarget);
-  renderer.render(scene, camera);
+  if (fx) fx.render(dt, t, S.snap?.phase); else renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); fx?.resize(); });
 connect(); frame(); loadModels();
 if (new URLSearchParams(location.search).has('tv')) setTimeout(() => $('#tvBtn').click(), 600);
-window.__ff = S; // debug handle
+window.__ff = S; window.__fx = fx; window.__scene = scene; window.__renderer = renderer; // debug handles

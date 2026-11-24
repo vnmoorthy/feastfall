@@ -39,7 +39,7 @@ Then the match ends, Bruin rebuilds everyone's reputation from the ledger, and n
 That line isn't scripted. It comes from a DuckDB table.
 
 <p align="center">
-  <img src="docs/screenshots/gameplay.jpg" alt="Gameplay: the island, the Granary meter, agent trust cards and the live decision ledger" width="32%">
+  <img src="docs/screenshots/gameplay-hd.jpg" alt="Gameplay in HD: Blender-built island, PBR water, 18k wind-swept grass blades, ambient occlusion, bloom" width="32%">
   <img src="docs/screenshots/council.jpg" alt="The Council: humans and agents vote to exile a suspect" width="32%">
   <img src="docs/screenshots/end.jpg" alt="End screen: unsealed traitor decisions, learned policy changes and the Bruin log" width="32%">
 </p>
@@ -435,6 +435,7 @@ feastfall/
 - **Bruin** (required) ✅ The whole memory system: ingestion, quality checks, reputation and policy marts, and the JSON export the agents load. See [`bruin/README.md`](bruin/README.md).
 - **Runware** ✅ All 14 images: five portraits, eight event cinematics and the hero art, generated in parallel at boot and cached.
 - **BAND** ✅ Two-way bridge ([`server/band.js`](server/band.js)). A registered BAND agent, *Feastfall Narrator*, posts every world event, accusation, council vote, exile and memory callout to a BAND room. Anyone in that room, human or agent in another tool, can write "who is the traitor?" or "call a council", and an island agent answers back into BAND. Configure with `BAND_AGENT_KEY`, `BAND_CHAT_ID` and `BAND_OWNER_ID`; check status at `GET /api/band`.
+- **Realistic renderer** ✅ [`public/realism.js`](public/realism.js): physically-based Preetham sky, image-based lighting, PBR clear-coat water with scrolling normal maps, GTAO ambient occlusion, Unreal bloom on fire and lanterns, VSM soft shadows, a vignette grade, 18,000 instanced grass blades swaying in a wind shader, falling autumn leaves and campfire embers. An fps governor switches off AO, then post-processing, if a laptop can't hold the frame rate, and the **✨ HD** button toggles it.
 - **Blender** ✅ The island, granary, campfire, pier, autumn trees, berry bushes and props (pumpkins, hay bales, lantern posts, the feast table) are built procedurally by [`tools/blender/build_assets.py`](tools/blender/build_assets.py) and exported as GLB. The client loads them with `GLTFLoader` and falls back to procedural meshes if a file is missing.
 
 ---

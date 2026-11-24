@@ -14,6 +14,7 @@ const cp = (from, to) => { fs.mkdirSync(path.dirname(path.join(OUT, to)), { recu
 cp('public/style.css', 'style.css');
 cp('public/main.js', 'main.js');
 cp('public/local.js', 'local.js');
+cp('public/realism.js', 'realism.js');
 cp('public/shims', 'shims');
 cp('public/models', 'models');
 cp('server/game.js', 'game.js');
@@ -22,7 +23,7 @@ cp('data/memory/reputation.json', 'data/reputation.json');
 cp('node_modules/three/build/three.module.js', 'vendor/three/build/three.module.js');
 cp('node_modules/three/build/three.core.js', 'vendor/three/build/three.core.js');
 cp('node_modules/three/examples/jsm/loaders/GLTFLoader.js', 'vendor/three/examples/jsm/loaders/GLTFLoader.js');
-cp('node_modules/three/examples/jsm/utils', 'vendor/three/examples/jsm/utils');
+for (const d of ['utils', 'postprocessing', 'shaders', 'objects', 'environments', 'math']) cp(`node_modules/three/examples/jsm/${d}`, `vendor/three/examples/jsm/${d}`);
 cp('deck', 'deck');
 cp('docs', 'docs');
 
