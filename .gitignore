@@ -9,5 +9,7 @@ __pycache__/
 *.py[cod]
 logs/runs
 site/
-
 logs/*.log
+docs/feastfall-demo.mp4
+docs/sponsors.*
+docs/Untitled.mov

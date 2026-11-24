@@ -22,7 +22,7 @@ A 3D multiplayer social-deduction game where humans and five AI animals share on
 <img alt="Built at Multiplayer AI Hackathon 2026" src="https://img.shields.io/badge/Built%20at-Multiplayer%20AI%20Hackathon%202026-8a5cf6">
 </p>
 
-**[▶ Play in your browser](https://vnmoorthy.github.io/feastfall/)** · **[Run multiplayer locally](#quickstart)** · **[Architecture](#architecture)** · **[Demo script](deck/STORYBOARD.md)** · **[Motion deck](https://vnmoorthy.github.io/feastfall/deck/)** · **[PowerPoint](deck/Feastfall.pptx)**
+**[🎬 Watch the demo video](docs/feastfall-final-demo.mp4)** · **[▶ Play in your browser](https://vnmoorthy.github.io/feastfall/)** · **[Run multiplayer locally](#quickstart)** · **[Architecture](#architecture)** · **[Demo script](deck/STORYBOARD.md)** · **[Motion deck](https://vnmoorthy.github.io/feastfall/deck/)** · **[PowerPoint](deck/Feastfall.pptx)**
 
 </div>
 
